@@ -11,3 +11,25 @@ using Test
     @test isapprox(T * [1, 2, 3], M * [1, 2, 3])
   end
 end
+
+@testset "setindex! testi" begin
+  T = Tridiag([1, 2], [3, 4, 5], [6, 7])
+
+  T[2, 2] = 10
+  @test T[2, 2] == 10
+
+  T[1, 2] = 30
+  @test T[1, 2] == 30
+end
+
+@testset "G.E testi" begin
+  T = Tridiag([1, 2], [3, 4, 5], [6, 7])
+  b = float([1, 2, 3])
+  c = float([5, 6, 7])
+
+  x = T \ b
+  y = T \ c
+
+  @test T * x ≈ b
+  @test T * y ≈ c
+end
