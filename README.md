@@ -16,7 +16,7 @@ $ julia
 julia> # pritisnemo ], da pridemo v način pkg
 pkg> activate . # aktiviramo delovno okolje v trenutnem direktoriju (npr. vaje)
 (vaje)pkg> generate VajaXY # generiramo ogrodje za novo vajo
-(vaje)pkg> develop VajaXY  # dodamo pravkar generirano vajo v delovno okolje
+(vaje)pkg> develop ./VajaXY  # dodamo pravkar generirano vajo v delovno okolje
 (vaje) pkg> # pritisnemo tipko za brisanje nazaj, da zopet pridemo v navaden način
 julia>
 ```

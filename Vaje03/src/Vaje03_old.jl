@@ -2,8 +2,8 @@ module Vaje03
 
 using SparseArrays
 
-export laplaceova_matrika, desne_strani, RobniProblemPravokotnikLaplace
-export resi, resi_iter
+export laplaceova_matrika, desne_strani, RobniProblemPravokotnikLaplace, solve
+
 
 """
     L = laplaceova_matrika(n, m)
@@ -52,60 +52,58 @@ function desne_strani(s, z, l, d)
 end
 
 struct RobniProblemPravokotnikLaplace
-  meje # meje [a, b] x [c, d] v vektorju [a, b, c, d]
+  meje # [a, b, c, d]
   robni_pogoji # funkcije na robu [fs, fz, fl, fd] f(a, y) = fl(y), f(x, c) = fs(x), ...
 end
 
 """
-  Z = resi(rp, h)
+  Z = solve(rp, h)
 
-Poišči približno rešitev RP za Laplaceovo enačbo za pravokotnik, 
-tako da pravokotnik razdelimo na mrežo s korakom h.
+  Poisci priblizno resitev RP za Laplaceovo enacbo za pravokotnik,
+  tako da pravokotnik razdelimo na mrezo s korakom h.
 """
-function resi(rp::RobniProblemPravokotnikLaplace, h)
+function solve(rp::RobniProblemPravokotnikLaplace, h)
+  # generiraj mrezo
   a, b, c, d = rp.meje
   fs, fz, fl, fd = rp.robni_pogoji
-  n = Integer(floor((b - a) / h) - 1)
-  m = Integer(floor((d - c) / h) - 1)
-  # Laplaceova matrika
-  L = laplaceova_matrika(m, n)
-  # desne strani
+  m = Integer(floor((b - a) / h) - 1)
+  n = Integer(floor((d - c) / h) - 1)
+
+  # generiraj Laplaceovo matriko
+  L = laplaceova_matrika(n, m)
+  # generiraj desne strani
   x = range(a, b, n + 2)
   y = range(c, d, m + 2)
+
   Z = zeros(m + 2, n + 2)
   Z[end, :] = fs.(x)
-  Z[1, :] = fz.(x)
+  Z[1, :] = fl.(y)
   Z[:, 1] = fl.(y)
   Z[:, end] = fd.(y)
-  b = desne_strani(Z[end, 2:end-1], Z[1, 2:end-1], Z[2:end-1, 1], Z[2:end-1, end])
+
+  s = fs(x[2:end-1])
+  z = fz(x[2:end-1])
+  l = fl(y[2:end-1])
+  d = fd(y[2:end-1])
+  b = desne_strani(s, z, l, d)
   # resi sistem
   x = L \ b
-  # resitev preoblikuj v matriko
+  # resitev prevedi v mariko
   Z[2:end-1, 2:end-1] = reshape(x, m, n)
+  # vrni resitev
   return Z
 end
 
-"""
-Reši robni problem z iterativno metodo SOR
-"""
-function resi_iter(rp::RobniProblemPravokotnikLaplace, h, w)
-  a, b, c, d = rp.meje
-  fs, fz, fl, fd = rp.robni_pogoji
-  n = Integer(floor((b - a) / h) - 1)
-  m = Integer(floor((d - c) / h) - 1)
-  # robni pogoji
-  x = range(a, b, n + 2)
-  y = range(c, d, m + 2)
-  Z = zeros(m + 2, n + 2)
-  Z[end, :] = fs.(x)
-  Z[1, :] = fz.(x)
-  Z[:, 1] = fl.(y)
-  Z[:, end] = fd.(y)
-  iteracija(Z, w)
-end
-"""
-Poišči rešitev Laplacoeve enačbe s SOR iteracijo.
-"""
+
+
+# """
+# Resi robni problem z iterativno metodo SOR
+# """
+# function resi_iter(rp:RobniProblemPravokotnikLaplace, h, w)
+
+# end
+
+
 function iteracija(Z, w, maxit=1000)
   n, m = size(Z)
   Z0 = copy(Z)
@@ -117,13 +115,15 @@ function iteracija(Z, w, maxit=1000)
         Z[i, j] = w * Z[i, j] + (1 - w) * Z0[i, j] # SOR popravek
       end
     end
+
     if isapprox(Z, Z0, atol=1e-5)
-      println("Stevilo iteracij: $it")
+      println("stevilo iteracij: $it")
       return Z
     end
+
     copyto!(Z0, Z)
   end
-  throw("Iteracija ni konvergirala v $maxit korakih")
+  throw("iteracija ni konvergirala v $maxit korakih")
 end
 
 end # module Vaje03
