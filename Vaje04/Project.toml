@@ -1,0 +1,7 @@
+name = "Vaje04"
+uuid = "3ec788c2-8299-40a1-9c92-82977dc6f604"
+authors = ["mojo <i-matija.ojo@devrev.ai>"]
+version = "0.1.0"
+
+[deps]
+Plots = "91a5bcdd-55d7-5caf-9e0b-520d859cae80"
