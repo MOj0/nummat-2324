@@ -6,7 +6,7 @@ export Zlepek, interpoliraj, vrednost, izirsi_zlepek
 
 """
 Podatkovna struktura za zlepek.
-Vsebuje koeifiente za vsak odsek in točke, kjer je zlepek interpoliran.
+Vsebuje koeficiente za vsak odsek in točke, kjer je zlepek interpoliran.
 """
 struct Zlepek
   coefficients
@@ -17,7 +17,8 @@ end
 """
   Z = interpoliraj(x, y)
 
-  Izračunaj koeficiente zlepka na interpolacijskih točkah in vrni strukturo `Zlepek`
+  Izračunaj koeficiente zlepka na interpolacijskih točkah danimi s koordinatami `x` in `y`
+  in vrni zlepek `Z` v podatkovni strukturi `Zlepek`. 
 """
 function interpoliraj(x, y)
   n = length(x)
@@ -71,14 +72,30 @@ end
 
   Izracunaj vrednost zlepka pri tocki x.
 """
-function vrednost(spline::Zlepek, x::Real)
-  i = length(spline.interpolation_points_x) - 1
-  for index in 1:length(spline.interpolation_points_x)
-    if x < spline.interpolation_points_x[index]
-      i = index - 1
-      break
+function vrednost(spline::Zlepek, x)
+  function find_index_bisection(spline, x)
+    if x < spline.interpolation_points_x[1] || x > spline.interpolation_points_x[end]
+      throw("x je izven obmocja interpolacije.")
     end
+
+    left = 1
+    right = length(spline.interpolation_points_x)
+
+    while left < right
+      mid = left + div(right - left, 2)
+      if spline.interpolation_points_x[mid] ≈ x
+        return mid
+      elseif spline.interpolation_points_x[mid] < x
+        left = mid + 1
+      else
+        right = mid
+      end
+    end
+
+    return left - 1
   end
+
+  i = find_index_bisection(spline, x)
 
   a = spline.coefficients[i, 1]
   b = spline.coefficients[i, 2]
@@ -86,13 +103,13 @@ function vrednost(spline::Zlepek, x::Real)
   d = spline.coefficients[i, 4]
   x0 = spline.interpolation_points_x[i]
 
-  return a + b * (x - x0) + c * (x - x0)^2 + d * (x - x0)^3
+  return ((d * (x - x0) + c) * (x - x0) + b) * (x - x0) + a
 end
 
 """
-  plot_spline(Z)
+  izirsi_zlepek(Z::Zlepek)
 
-  Izriši zlepek.
+  S pomočjo knjižnice `Plots` izrise zlepek `Z`.
 """
 function izirsi_zlepek(Z::Zlepek)
   n = length(Z.interpolation_points_x)
