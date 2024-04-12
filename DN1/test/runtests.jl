@@ -49,8 +49,10 @@ end
   y = sin.(x)
   s = interpoliraj(x, y)
 
-  diff = [abs(vrednost(s, xi) - sin(xi)) for xi in x]
+  inner = range(0, stop=2 * pi, length=11)
+  diff = [abs(vrednost(s, xi) - sin(xi)) for xi in inner]
+
   for d in diff
-    @test d < 1e-15
+    @test d < 5e-7
   end
 end

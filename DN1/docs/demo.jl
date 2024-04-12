@@ -20,7 +20,7 @@
 #' $S_i(x) = a_i + b_i(x-x_i) + c_i(x-x_i)^2 + d_i(x-x_i)^3$,
 #' kjer so $a_i, b_i, c_i, d_i$ koeficienti polinoma, $x_i$ je $x$-koordinata $i$-te interpolacijske točke, $x$ pa spremenljivka.
 
-#' Koeificente lahko izračunamo da izpeljemo tridiagonalni sistem.
+#' Koeificente lahko izračunamo tako, da izpeljemo tridiagonalni sistem.
 #' Označimo $t = x - x_i$ in brez izgube na splošnosti za naslednje izračune predpostavimo $t \in [0, 1]$.
 #' Potem je $S_i(t) = a_i + b_i t + c_i t^2 + d_i t^3$.
 #' Pri tem upoštevamo pogoje:
