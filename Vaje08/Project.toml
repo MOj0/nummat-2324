@@ -1,0 +1,7 @@
+name = "Vaje08"
+uuid = "f4003642-c8f4-479a-91f4-0cfd708e546f"
+authors = ["mojo <i-matija.ojo@devrev.ai>"]
+version = "0.1.0"
+
+[deps]
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
