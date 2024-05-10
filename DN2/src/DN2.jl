@@ -1,111 +1,33 @@
 module DN2
 
 
-export normal_CDF, bezier_curve_area, bezier
+export gaussian_CDF, bezier_curve_area, bezier
 
 """
-  y = normal_CDF(x)
+  y = gaussian_CDF(x)
 
 Izračunaj vrednost porazdelitvene funkcije Gaussove/normalne slučajne spremenljivke X ∼ N(0,1) za dano vrednost `x`.
 """
-function normal_CDF(x, tol=10^-10)
-  phi_prime(x) = exp(-0.5 * x^2) # e^(-x^2/2)
-  MAXRANGE = 10
-
-  if x > MAXRANGE
-    return 1.0
-  end
-  if x < 0
-    return 1 - normal_CDF(-x)
-  end
-
-  return adaptive_simpson(phi_prime, -MAXRANGE, x, tol) / koren(2 * pi())
+function gaussian_CDF(x)
+  phi_prime(x) = exp(-0.5 * x^2)
+  return 1 / sqrt(2 * pi) * simpson_rule(phi_prime, -10, x, 600)
 end
 
 
 """
-  y = koren(x)
+  s = simpson_rule(f, a, b, n)
 
-Izračunaj vrednost kvadratnega korena danega števila `x˙. 
+Izračunaj vrednost integrala funkcije `f` na intervalu `[a, b]` s sestavljenim
+Simpsonovim 1/3 pravilom na `n` točkah (`n` je sodo).
 """
-function koren(a, tol=10^-10)
-  x0 = zacetni_priblizek(a)
-  for i = 1:100
-    x = (x0 + a / x0) / 2
-    if abs(x - x0) < tol * abs(x)
-      return x
-    end
-    x0 = x
+function simpson_rule(f, a, b, n)
+  h = (b - a) / (2 * n)
+  s = f(a) + f(b) + 4 * f(a + h)
+  for i in 1:n-1
+    s += 2 * f(a + 2 * i * h) + 4 * f(a + 2 * i * h + h)
   end
-  throw("Iteracija ne konvergira")
-end
-
-
-"""
-  x0 = zacetni_priblizek(a)
-
-Izračunaj začetni približek za kvadratni koren števila `a` z uporabo eksponenta števila s
-plavajočo vejico. 
-"""
-function zacetni_priblizek(a)
-  exp = div(exponent(a), 2) # sqrt(2^x) = 2^(x/2)
-
-  if exp > 0
-    return 1 << exp # magični začetni približek 2^(exp/2)
-  else
-    return 1 / (1 << -exp)
-  end
-end
-
-
-"""
-  p = pi()
-
-Izračunaj približno vrednost konstante π.
-"""
-function pi()
-  x = 2
-
-  for i in 100:-1:1
-    frac = i / (2 * i + 1)
-    x = 2 + (frac * x)
-  end
-
-  return x
-end
-
-
-"""
-  integral = adaptive_simpson(f, a, b, tolerance)
-
-Izračunaj približno vrednost integrala funkcije `f` na intervalu `[a, b]` z dano toleranco `tolerance`
-z uporabo adaptivne Simpsonove metode.
-"""
-function adaptive_simpson(f, a, b, tolerance)
-  function simpson_rule(f, a, b)
-    return (b - a) / 6 * (f(a) + 4 * f((a + b) / 2) + f(b))
-  end
-
-  function adaptive_simpson_recursive(f, a, b, tol, fa, fb, fMid, S)
-    mid = (a + b) / 2
-    d = (a + mid) / 2
-    e = (mid + b) / 2
-    fd = f(d)
-    fe = f(e)
-    Sleft = simpson_rule(f, a, mid)
-    Sright = simpson_rule(f, mid, b)
-    delta = abs(Sleft + Sright - S)
-
-    if delta <= 15 * tol
-      return Sleft + Sright + delta / 15
-    end
-
-    return adaptive_simpson_recursive(f, a, mid, tol / 2, fa, fMid, fd, Sleft) +
-           adaptive_simpson_recursive(f, mid, b, tol / 2, fMid, fb, fe, Sright)
-  end
-
-  S = simpson_rule(f, a, b)
-  return adaptive_simpson_recursive(f, a, b, tolerance, f(a), f(b), f((a + b) / 2), S)
+  s *= h / 3
+  return s
 end
 
 
@@ -117,9 +39,9 @@ Izračunaj ploščino zanke, ki jo vsebuje Bézierova krivulja dana s kontrolnim
 """
 function bezier_curve_area(tol=10^-10)
   control_points = [(0, 0), (1, 1), (2, 3), (1, 4), (0, 4), (-1, 3), (0, 1), (1, 0)]
-  t0, t1 = find_intersection_at_x(control_points, 0.5) # We know that the intersection is at x=0.5
+  t0, t1 = find_intersection_at_x(control_points, 0.5, 1.0)
 
-  return 0.5 * adaptive_simpson(t -> bezier_integrand(control_points, t), t0, t1, tol)
+  return 0.5 * simpson_rule(t -> bezier_integrand(control_points, t), t0, t1, 500)
 end
 
 """
@@ -128,14 +50,14 @@ end
 Izračunaj binomski koeficient C(n, k) za dani `n` in `k`.
 """
 function binomial_coefficient(n, k)
-  if k < 0 || k > n
-    return 0
+  if (k > n - k)
+    k = n - k
   end
-  if k == 0 || k == n
-    return 1
+  res = 1
+  for i in 0:k-1
+    res *= (n - i) // (i + 1)
   end
-
-  return binomial_coefficient(n - 1, k - 1) + binomial_coefficient(n - 1, k)
+  return res
 end
 
 
@@ -152,17 +74,19 @@ end
   p = bezier(control_points, t)
 
 Izračunaj vrednost Bézierove krivulje dane s kontrolnim poligonom `control_points` pri vrednosti `t`.
+Uporabi de Casteljaujev algoritem.
 """
 function bezier(control_points, t)
-  n = length(control_points) - 1
-  p = (0.0, 0.0)
-  i = 0
-  for control_point in control_points
-    p = p .+ control_point .* bernstein_p(i, n, t)
-    i += 1
+  n = length(control_points)
+  points = [(float(control_points[i][1]), float(control_points[i][2])) for i in 1:n]
+
+  for i in 1:n-1
+    for j in 1:n-i
+      points[j] = (1 - t) .* points[j] .+ t .* points[j+1]
+    end
   end
 
-  return p
+  return points[1]
 end
 
 """
@@ -197,29 +121,44 @@ end
 
 
 """
-  t0, t1 = find_intersection_at_x(control_points, x_isect, tol)
+  t0, t1 = find_intersection_at_x(control_points, x_isect, y_isect, tol)
 
 Najdi parametra `t0` in `t1` pri katerih se Bézierova krivulja dana s kontrolnim poligonom `control_points`
-seka v točki z x koordinato `x_isect`.
-V primeru da presečišča ni, vrni `t0=0`, `t1=1`.
+seka v točki z x koordinato `x_isect` in y koordinato manjso od `y_upper`.
 """
-function find_intersection_at_x(control_points, x_isect, tol=0.001)
+function find_intersection_at_x(control_points, x_isect, y_upper, tol=10^-10)
   t0 = 0.0
   t1 = 1.0
-  y_isect = nothing
 
-  for t in range(0, stop=1, length=1000)
+  for t in range(0, stop=1, length=10)
     x, y = bezier(control_points, t)
-    if abs(x - x_isect) < tol
-      if isnothing(y_isect)
-        y_isect = y
+    if abs(x - x_isect) < 0.3 && y < y_upper
+      if t0 == 0.0  # 0.0 can be represented exactly with floats, so this is fine
         t0 = t
-      elseif abs(y_isect - y) < tol
-        # NOTE: Only the first point with x=x_isect is considered
+      else
         t1 = t
         break
       end
     end
+  end
+
+  maxiter = 100
+  for _ in 1:maxiter
+    x0, y0 = bezier(control_points, t0)
+    dx0, _ = bezier_derivative(control_points, t0)
+    if abs(x0 - x_isect) / abs(x_isect) < tol && y0 < y_upper
+      break
+    end
+    t0 -= (x0 - x_isect) / dx0
+  end
+
+  for _ in 1:maxiter
+    x1, y1 = bezier(control_points, t1)
+    dx1, _ = bezier_derivative(control_points, t1)
+    if abs(x1 - x_isect) / abs(x_isect) < tol && y1 < y_upper
+      break
+    end
+    t1 -= (x1 - x_isect) / dx1
   end
 
   return t0, t1

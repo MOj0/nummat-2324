@@ -9,23 +9,39 @@
 #' V praksi se uporablja za izračun verjetnosti, da bo vrednost slučajne spremenljivke padla v določen interval.
 
 #' Za izračun porazdelitvene funkcije normalne slučajne spremenljivke se uporablja le numerične metode, saj integrala ne moremo izračunati analitično.
-#' V nalogi je uporabljena [adaptivna Simpsonova metoda](https://en.wikipedia.org/wiki/Adaptive_Simpson%27s_method) za izračun integrala.
-#' Adaptivna Simpsonova metoda je osnovana na [Simpsonovem pravilu](https://en.wikipedia.org/wiki/Simpson%27s_rule), ki numerično izračuna vrednost integrala tako da evalvira vrednost funckije na vmesnih točkah.
-#' Velja: $\int_a^b = \frac{b - a}{6} (f(a) + 4f(\frac{a+b}{2}) + f(b))$.
-#' Adaptivna metoda pa razdeli interval na dva dela in izračuna integral na vsakem delu posebej, in njuno vsoto uporabi kot naslendji približek.
-#' Če je razlika med dobljenim pribiližkom integrala in prejšnjim približkom večja od določene tolerance, se interval razdeli na še manjše dele, sicer vrne izračunani približek.
+#' V nalogi je uporabljena [sestavljenova Simpsonova 1/3 metoda](https://en.wikipedia.org/wiki/Simpson%27s_rule#Composite_Simpson's_1/3_rule) za izračun integrala.
+#' Sestavljena Simpsonova metoda je osnovana na [Simpsonovem pravilu](https://en.wikipedia.org/wiki/Simpson%27s_rule), ki numerično izračuna vrednost integrala tako da evalvira vrednost funckije na vmesnih točkah.
+#' Velja: $\int_a^b f(x) \approx \frac{b - a}{6} (f(a) + 4f(\frac{a+b}{2}) + f(b))$.
+#' Sestavljeno Simpsonovo 1/3 pravilo pa interval $[a, b]$ razdeli na $n$ podintervalov in izračuna integral na vsakem podintervalu.
+#' Velja namreč: $\int_a^b f(x) \approx \frac{1}{3} h (f(x_0) + 4f(x_1) + 2f(x_2) + 4f(x_3) + 2f(x_4) + \dots + 2f(x_{n-2}))$.
 
 #' ### Rezultati
 
-#' Poglejmo si graf porazdelitvene funkcije normalne slučajne spremenljivke za različne vrednosti $x$,
-#' pri čemer je vsaka vrednost funckije izračunana z adaptivno Simpsonovo metodo.
+#' Poglejmo si graf relativne napake med porazdelitveno funkcijo normalne slučajne spremenljivke izračunano
+#' s sestavljeno Simpsonovo metodo ter z metodo izračuna integrala z uporabo Gaussove kvadrature iz paketa
+#' `FastGaussQuadrature` in jo smatramo za "točno" vrednost.
 
 using DN2
 using Plots
+using FastGaussQuadrature
 
-xs = range(-4, stop=4, length=1000)
-ys = [normal_CDF(x) for x in xs]
-plot(xs, ys, xlabel="x", ylabel="F(x)", title="Porazdelitvena funkcija N(0, 1)", legend=:none)
+function accurate_gauss_CDF(x)
+  f(x) = exp(-x^2 / 2) / sqrt(2 * pi)
+  a = -10
+  b = x
+  n = 60
+  xs, ws = gausslegendre(n)
+  xs = (b - a) / 2 * xs .+ (b + a) / 2
+  ws = (b - a) / 2 * ws
+  return sum(ws .* f.(xs))
+end
+
+xs = range(-1, stop=1, length=1000)
+ys = [gaussian_CDF(x) for x in xs]
+true_ys = [accurate_gauss_CDF(x) for x in xs]
+diffs = [abs(ys[i] - true_ys[i]) / abs(true_ys[i]) for i in 1:length(xs)]
+plot(xs, diffs, label="Relativna napaka")
+
 
 
 #' ## Ploščina Bézierove krivulje
@@ -42,7 +58,7 @@ plot(xs, ys, xlabel="x", ylabel="F(x)", title="Porazdelitvena funkcija N(0, 1)",
 
 #' V nalogi je Bézierova krivulja podana z naslendjimi kontrolnimi točkami:
 
-control_points = [(0, 0), (1, 1), (2, 3), (1, 4), (0, 4), (-1, 3), (0, 1), (1, 0)]
+control_points = [(0, 0), (1, 1), (2, 3), (1, 4), (0, 4), (-1, 3), (0, 1), (1, 0)];
 
 #' Poglejmo si njen graf
 
@@ -52,12 +68,10 @@ y_values = [bezier(control_points, t_value)[2] for t_value in t]
 plot(x_values, y_values, xlabel="x", ylabel="y", title="Bézierova krivulja z zanko", legend=:none)
 
 
-#' Da izračunamo ploščino zanke, moramo najprej najti presečišče, kjer se zanka začne (in tudi konča).
-#' Opazimo lahko da ima presečišče x-koordinato enako $0.5$.
-#' To lahko uporabimo pri  iskanju vrednosti neodvisne spremenljivke `t` tega presečišča.
-#' S preprostim algoritmom lahko ugotovimo da se pri `t0=0.075` zanka začne in se konča pri `t1=0.924`.
-#' Ti dve meji uporabimo pri izračunu ploščine zanke, natančneje, pri adaptivni Simpsonovi metodi.
+#' Ploščino zanke se izračuna tako da se najde samo-presek krivulje (začetek in konec zanke) in meji
+#' uporabimo pri sestavljeni Simpsonovi metodi za izračun ploščine.
 
+#' Meji so izračunani s pomočjo Newtonove metode z relativno natančnostjo $10^{-10}$.
 
 #' ## Rezultati 
 

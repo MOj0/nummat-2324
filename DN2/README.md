@@ -8,7 +8,7 @@ Napišite učinkovito funkcijo, ki izračuna vrednosti porazdelitvene funkcije z
 
 ## Uporaba kode
 
-Implementirana je funkcija `normal_CDF(x, tol=10^-10)`, ki preko adaptivnega Simpsonovega pravila izračuna vrednost porazdelitvene funkcije normalne slučajne spremenljivke.
+Implementirana je funkcija `gaussian_CDF(x, tol=10^-10)`, ki preko adaptivnega Simpsonovega pravila izračuna vrednost porazdelitvene funkcije normalne slučajne spremenljivke.
 
 
 ## Ploščina Bézierove krivulje
@@ -21,7 +21,7 @@ Izračunajte ploščino zanke, ki jo omejuje Bézierova krivulja dana s kontroln
 
 ## Uporaba kode
 
-Implementirana je funkcija `normal_CDF(tol=10^-10)`, ki najde samo-presečišče v krivulji (začetek in konec zanke) in preko adaptivnega Simpsonovega pravila izračuna površino znotraj zanke.
+Implementirana je funkcija `gaussian_CDF(tol=10^-10)`, ki najde samo-presečišče v krivulji (začetek in konec zanke) in preko adaptivnega Simpsonovega pravila izračuna površino znotraj zanke.
 
 
 ## Poganjanje testov
