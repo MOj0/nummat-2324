@@ -2,7 +2,7 @@
 
 julia_version = "1.10.2"
 manifest_format = "2.0"
-project_hash = "ee50b8ad93a735783ed71f0e4074b8b6c3eb313b"
+project_hash = "7da6c76efff29036bc01730389a6ce478f62a0a4"
 
 [[deps.ANSIColoredPrinters]]
 git-tree-sha1 = "574baf8110975760d391c710b6341da1afa48d8c"
@@ -1032,6 +1032,12 @@ version = "0.1.0"
 deps = ["Test"]
 path = "Vaje08"
 uuid = "f4003642-c8f4-479a-91f4-0cfd708e546f"
+version = "0.1.0"
+
+[[deps.Vaje09]]
+deps = ["FastGaussQuadrature", "Plots", "Test", "Weave"]
+path = "Vaje09"
+uuid = "671489fe-bf3a-43b5-b5b7-1635c2c6dd28"
 version = "0.1.0"
 
 [[deps.VersionParsing]]
