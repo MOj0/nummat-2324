@@ -3,7 +3,7 @@ using Test
 using DifferentialEquations
 
 
-function exact_sol(l, t, theta0, dtheta0)
+function num_sol(l, t, theta0, dtheta0)
   function pendulum!(du, u, p, t)
     g, l = p
     du[1] = u[2]
@@ -29,17 +29,18 @@ end
   dtheta0 = 0.1
   n = 1000
 
-  exact = exact_sol(l, t, theta0, dtheta0)
+  exact = num_sol(l, t, theta0, dtheta0)
   @test isapprox(nihalo(l, t, theta0, dtheta0, n), exact, atol=1e-8)
 end
 
 @testset "nihalo_random" begin
+  Random.seed!(111);
   l = rand(1:10)
   t = rand(1:100)
   theta0 = rand(0:0.1:0.5)
   dtheta0 = rand(0:0.1:0.5)
   n = 10000
 
-  exact = exact_sol(l, t, theta0, dtheta0)
+  exact = num_sol(l, t, theta0, dtheta0)
   @test isapprox(nihalo(l, t, theta0, dtheta0, n), exact, atol=1e-4)
 end

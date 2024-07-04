@@ -13,7 +13,7 @@
 
 #' Naloge se lotimo tako da enačbo drugega reda prevedemo na sistem prvega reda:
 
-#' $$\theta'(t) = y(t)$$
+#' $$\omega'(t) = y(t)$$
 #' $$y'(t) = -\frac{g}{l} \sin(\theta(t))$$
 
 #' in rešujemo z metodo [Runge-Kutta četrtega reda](https://en.wikipedia.org/wiki/Runge%E2%80%93Kutta_methods#The_Runge%E2%80%93Kutta_method).
@@ -21,14 +21,14 @@
 #' Runge-Kutta metode so družina implicitnih in eksplicitnih iterativnih metod, ki vključujejo Eulerjevo metodo,
 #' ki se uporablja v časovni diskretizaciji za približne rešitve simultanih nelinearnih enačb.
 
-#' Najbolj uveljavljena je Runge-Kutta metoda 4. reda, ki rešuje aproksimira rešitev diferencialne enačbe.
+#' Najbolj uveljavljena je Runge-Kutta metoda 4. reda.
 
 #' Pri diferencialni enačbi želimo aproksimirati neznano funkcijo $y$, odvisna od časa $t$.
 #' Podano imamo začetno vrednost $y_0$ v začetnem času $t_0$ in funkcijo odvoda $f(t, y)$, velja torej:
 
 #' $$\frac{dy}{dy} = f(t, y); \quad y(t_0) = y_0$$
 
-#' Če želimo izračunati vrednost funkcije $y$ v času $t_1$, to naredimo tako,
+#' Če želimo izračunati približek vrednosti funkcije $y$ v času $t_1$, to naredimo tako,
 #' da časovni interval diskretiziramo na $n$ podintervalov dolžine $h$ in uporabimo Runge-Kutta metodo 4. reda:
 
 #' $$k_1 = h f(t, y)$$
@@ -71,7 +71,7 @@ plot([nihalo(3, t, theta0, dtheta0, n) for t in ts], label="Nihalo")
 plot!([nihalo_harmonicno(3, t, theta0, n) for t in ts], title="Nihanje pri l=3", label="Harmonicno nihalo")
 
 
-#' Kot vidimo iz zgornjih grafov, harmonicno nihanje ni odvisno od energije nihala, medtem ko je pri matematičnem nihalu to upoštevano.
+#' Kot vidimo iz zgornjih grafov, perioda pri harmoničnem nihanju ni odvisno od energije nihala, medtem ko se pri matematičnem nihalu perioda spreminja v odvisnosti od začetnih pogojev.
 #' Posledica tega je, da bo matematično nihalo čedalje počasneje nihalo, saj se bo energija izgubljala.
 
 #' Narišimo še graf, ki prikazuje kako se nihajni čas spreminja z energijo nihanja.
